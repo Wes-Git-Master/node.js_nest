@@ -6,40 +6,72 @@ import {
   Param,
   Patch,
   Post,
+  Req,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiConflictResponse,
+  ApiForbiddenResponse,
+  ApiNoContentResponse,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto } from './dto/req/create-user.dto';
+import { UpdateUserDto } from './dto/req/update-user.dto';
+import { PrivateUserResDto } from './dto/res/private-user.res.dto';
+import { PublicUserResDto } from './dto/res/public-user.res.dto';
 import { UsersService } from './users.service';
 
-@ApiTags('Users') // групування
+@ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  public create(@Body() dto: CreateUserDto) {
-    return this.usersService.create(dto);
+  public async create(
+    @Req() req: Request,
+    @Body() dto: CreateUserDto,
+  ): Promise<PrivateUserResDto> {
+    return await this.usersService.create(dto);
   }
 
-  @Get()
-  public findAll() {
-    return this.usersService.findAll();
+  @ApiBearerAuth()
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiConflictResponse({ description: 'Conflict' })
+  @Get('me')
+  public async findMe(): Promise<PrivateUserResDto> {
+    return await this.usersService.findMe(1);
   }
 
-  @Get(':id')
-  public findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  @ApiBearerAuth()
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiConflictResponse({ description: 'Conflict' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @Patch('me')
+  public async updateMe(
+    @Body() dto: UpdateUserDto,
+  ): Promise<PrivateUserResDto> {
+    return await this.usersService.updateMe(1, dto);
   }
 
-  @Patch(':id')
-  public update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
-    return this.usersService.update(+id, dto);
+  @ApiBearerAuth()
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiConflictResponse({ description: 'Conflict' })
+  @ApiNoContentResponse({ description: 'User has been removed' })
+  @Delete('me')
+  public async removeMe(): Promise<void> {
+    return await this.usersService.removeMe(1);
   }
 
-  @Delete(':id')
-  public remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  @Get(':userId')
+  public async findOne(
+    @Param('userId') userId: string,
+  ): Promise<PublicUserResDto> {
+    return await this.usersService.findOne(+userId);
   }
 }
