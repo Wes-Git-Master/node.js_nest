@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -32,10 +34,12 @@ export class UsersController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @Post()
   public async create(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Req() req: Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Body() dto: CreateUserDto,
   ): Promise<PrivateUserResDto> {
-    return await this.usersService.create(dto);
+    return await this.usersService.create();
   }
 
   @ApiBearerAuth()
@@ -54,9 +58,10 @@ export class UsersController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @Patch('me')
   public async updateMe(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Body() dto: UpdateUserDto,
   ): Promise<PrivateUserResDto> {
-    return await this.usersService.updateMe(1, dto);
+    return await this.usersService.updateMe(1);
   }
 
   @ApiBearerAuth()
@@ -64,6 +69,7 @@ export class UsersController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiConflictResponse({ description: 'Conflict' })
   @ApiNoContentResponse({ description: 'User has been removed' })
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Delete('me')
   public async removeMe(): Promise<void> {
     return await this.usersService.removeMe(1);
